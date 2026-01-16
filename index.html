@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin Play - MultiGames</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Metal+Mania&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-acento: #FF3B30;
+            --color-fondo: #111827;
+            --color-tarjeta: #1F2937;
+            --color-texto: #F3F4F6;
+        }
+        body { background-color: var(--color-fondo); color: var(--color-texto); font-family: 'Space Mono', monospace; }
+        .font-plugin { font-family: 'Metal Mania', system-ui; }
+        .text-acento { color: var(--color-acento); }
+        .bg-tarjeta { background-color: var(--color-tarjeta); }
+        
+        input[type="number"] {
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid #374151;
+            border-radius: 4px;
+            color: white;
+            text-align: center;
+            width: 70px;
+            padding: 6px 2px;
+        }
+        input[type="number"]:focus { border-color: var(--color-acento); outline: none; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Contenedor con scroll para las 7 columnas */
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { min-width: 800px; } /* Asegura que no se aplaste en móviles */
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <header class="bg-gray-900 shadow-md p-4 border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-extrabold text-acento font-plugin">Plugin Play</h1>
+            <nav class="flex space-x-2">
+                <button onclick="showSection('modo-puntos')" class="py-2 px-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] font-bold border border-gray-600 uppercase">📊 Faraway</button>
+                <button onclick="showSection('modo-cluedo')" class="py-2 px-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] font-bold border border-gray-600 uppercase">🕵️ Cluedo</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <section id="modo-puntos" class="game-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold italic border-l-4 border-acento pl-3 uppercase">Puntos Faraway</h2>
+                <button onclick="resetPuntos()" class="text-[10px] text-gray-500 hover:text-acento underline">RESET PUNTOS</button>
+            </div>
+
+            <div class="bg-tarjeta rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+                <div class="table-container">
+                    <table class="w-full text-center">
+                        <thead>
+                            <tr class="bg-gray-800 text-[10px]">
+                                <th class="p-4 text-left text-gray-400 w-32">Concepto</th>
+                                <script>
+                                    for(let j=1; j<=7; j++) {
+                                        document.write(`<th class="p-2 border-l border-gray-700">
+                                            <input type="text" placeholder="Jug ${j}" class="bg-transparent text-center text-acento font-bold outline-none w-full placeholder-gray-600">
+                                        </th>`);
+                                    }
+                                </script>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <script>
+                                // 8 Filas de cartas
+                                for(let i=1; i<=8; i++) {
+                                    document.write(`<tr class="border-b border-gray-800">`);
+                                    document.write(`<td class="p-3 text-left pl-4 text-gray-500 font-bold bg-gray-900/20">Carta #${i}</td>`);
+                                    for(let j=1; j<=7; j++) {
+                                        document.write(`<td class="p-2 border-l border-gray-800">
+                                            <input type="number" oninput="calcular(${j})" class="val-j${j}" value="0">
+                                        </td>`);
+                                    }
+                                    document.write(`</tr>`);
+                                }
+                            </script>
+                            <tr class="bg-gray-800/40">
+                                <td class="p-4 text-left pl-4 text-white font-bold">SANTUARIOS</td>
+                                <script>
+                                    for(let j=1; j<=7; j++) {
+                                        document.write(`<td class="p-2 border-l border-gray-800">
+                                            <input type="number" oninput="calcular(${j})" class="val-j${j} text-yellow-500 font-bold" value="0">
+                                        </td>`);
+                                    }
+                                </script>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-black font-bold">
+                                <td class="p-5 text-right uppercase text-[10px] text-gray-500">Total</td>
+                                <script>
+                                    for(let j=1; j<=7; j++) {
+                                        document.write(`<td id="total-j${j}" class="p-5 text-center text-acento text-xl border-l border-gray-800">0</td>`);
+                                    }
+                                </script>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="modo-cluedo" class="game-section hidden">
+            <h2 class="text-xl font-bold mb-6 italic border-l-4 border-acento pl-3 uppercase">Bloc de Notas Cluedo</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-tarjeta p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-acento font-bold mb-4 border-b border-gray-700 pb-2">👤 SOSPECHOSOS</h3>
+                    <div id="cluedo-sospechosos" class="space-y-2">
+                        </div>
+                </div>
+
+                <div class="bg-tarjeta p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-acento font-bold mb-4 border-b border-gray-700 pb-2">🗡️ ARMAS</h3>
+                    <div id="cluedo-armas" class="space-y-2"></div>
+                </div>
+
+                <div class="bg-tarjeta p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-acento font-bold mb-4 border-b border-gray-700 pb-2">🏰 LUGARES</h3>
+                    <div id="cluedo-lugares" class="space-y-2"></div>
+                </div>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-8 text-center uppercase tracking-widest">Toca los nombres para marcar tus descartes</p>
+        </section>
+
+    </main>
+
+    <script>
+        // Navegación
+        function showSection(id) {
+            document.querySelectorAll('.game-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // Lógica Faraway
+        function calcular(j) {
+            let total = 0;
+            document.querySelectorAll(`.val-j${j}`).forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById(`total-j${j}`).innerText = total;
+        }
+
+        function resetPuntos() {
+            if(confirm("¿Borrar todos los puntos?")) {
+                document.querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
+                for(let j=1; j<=7; j++) document.getElementById(`total-j${j}`).innerText = 0;
+            }
+        }
+
+        // Lógica Cluedo (Generar items y tachar)
+        const cluedoData = {
+            sospechosos: ["Amapola", "Celeste", "Prado", "Mora", "Blanco", "Rubio"],
+            armas: ["Candelabro", "Puñal", "Tubería", "Pistola", "Cuerda", "Llave Inglesa"],
+            lugares: ["Cocina", "Comedor", "Biblioteca", "Gimnasio", "Salón", "Estudio", "Terraza"]
+        };
+
+        function initCluedo() {
+            for (let categoria in cluedoData) {
+                const container = document.getElementById(`cluedo-${categoria}`);
+                cluedoData[categoria].forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center p-2 bg-gray-800/50 rounded cursor-pointer hover:bg-gray-700 transition";
+                    div.innerHTML = `<span>${item}</span><input type="checkbox" class="w-4 h-4 accent-red-600">`;
+                    div.onclick = () => {
+                        const cb = div.querySelector('input');
+                        cb.checked = !cb.checked;
+                        div.classList.toggle('opacity-30');
+                        div.classList.toggle('line-through');
+                    };
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        // Arrancar Cluedo al cargar
+        initCluedo();
+    </script>
+</body>
+</html>
